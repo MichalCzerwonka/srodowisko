@@ -70,3 +70,22 @@ ZADANIE 4
 find /etc\(-type d -and ! empty\) -or \(-type f -and -name a*\) 2> /dev/null
 ```
 
+## Labolatorium 6
+
+ZADANIE 2
+
+```ssh
+grep ^[0-9] pl*
+```
+ZADANIE 4
+
+```ssh
+grep -c bash /etc/passwd
+```
+
+ZADANIE 5
+
+```ssh
+grep [IVXLCDM] plik.txt
+```
+
