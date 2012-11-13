@@ -44,6 +44,16 @@ ZADANIE 4
 cat /etc/passwd/ | sort --reverse --general-numeric-sort
 ```
 
+ZADANIE 5
+```ssh
+cat /etc/passwd | sort -r --field-separator=":" -g -k 4,3
+```
+
+ZADANIE 6
+```ssh
+find / -printf "%u\n" 2> /dev/null | sort | uniq -c
+```
+
 ## Labolatorium 5
 
 ZADANIE 1
