@@ -1,4 +1,4 @@
-## Labolatorium 2 
+## Laboratorium 2 
 
 ZADANIE 1
 
@@ -24,7 +24,7 @@ chmod u=rw program.c
 chmod g=r program.c
 ```
 
-##Labolatorium 3
+##Laboratorium 3
 
 ZADANIE 1
 ```sh
@@ -71,7 +71,7 @@ cut /etc/passwd | head -n 3 | wc -n
 ```
 
 
-## Labolatorium 4
+## Laboratorium 4
 
 ZADANIE 1
 
@@ -107,12 +107,12 @@ ZADANIE 6
 find / -printf "%u\n" 2>/dev/null | sort | uniq -c
 ```
 
-## Labolatorium 5
+## Laboratorium 5
 
 ZADANIE 1
 
 ```sh
-find ~/ -maxdepth 1 -mtime -10
+find ~/ -maxdepth 1 -mtime -10 -type f
 ```
 
 ZADANIE 2
@@ -124,7 +124,7 @@ find / -name \*config\* -type f 2> /dev/null
 ZADANIE 3
 
 ```sh
-find ~/ -atime 20
+find . -path '*/.git/*' -prune -o -print
 ```
 
 ZADANIE 4
@@ -133,7 +133,7 @@ ZADANIE 4
 find /etc\(-type d -and ! empty\) -or \(-type f -and -name a*\) 2> /dev/null
 ```
 
-## Labolatorium 6
+## Laboratorium 6
 
 ZADANIE 1
 ```sh
