@@ -18,7 +18,7 @@ echo "Dzien roku : $dzis"
 #roczek=2012 #test
 
 if [ $[$roczek % 400] -eq 0 ]; then
-  {
+	{
 	echo "Rok przestepny : Tak"
         iledk=`expr 366 - $dzis`
         echo "Do konca roku mamy : $iledk dni"
@@ -47,6 +47,6 @@ fi
 
 # Imieniny
 imdata=`date +%d%m`
-im=`grep $imdata imieniny.txt | cut -d' ' -f2`
+im=`grep $imdata imieniny_utf8.txt | cut -d' ' -f2`
 echo  "Dzis mamy imieniny :  $im"
 echo -e "\n \n" # 2 linijki odstepu
