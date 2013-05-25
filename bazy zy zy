@@ -210,3 +210,135 @@ INSERT INTO ZAMOWIENIE VALUES (3,4,'50','40');
 INSERT INTO ZAMOWIENIE VALUES (3,5,'30','120');
 
 
+
+
+SELECTY
+--FAKTURY WYSTAWIONE DLA KLIENTOW--
+SELECT k.imie, k.nazwisko, ad.imie, ad.nazwisko, ad.ulica, ad.nr_domu, ad.miasto, f.dystans_km, f.cena_brutto
+FROM KLIENT k JOIN FAKTURA f ON k.id_KLIENT=f.id_KLIENT
+JOIN ADRES_DOCELOWY ad ON ad.id_ADRES_DOCELOWY=f.id_ADRES_DOCELOWY
+ORDER BY k.nazwisko, k.imie;
+
+--RODZAJE AUT W FIRMIE--
+SELECT a.marka, a.model, a.numer_rejestracyjny, t.typ, t.cena_km
+FROM AUTOO a JOIN TYP_AUTA t ON a.id_TYP_AUTA=t.id_TYP_AUTA
+ORDER BY a.marka, a.model;
+
+--MIEJSCA, W KTÓRYCH PRACUJĄ PRACOWNICY--
+SELECT p.imie, p.nazwisko, a.ulica, a.numer_domu, a.kod_pocztowy, f.nazwa
+FROM PRACOWNIK p JOIN FIRMA f ON p.ID_FIRMA=f.ID_FIRMA
+JOIN ADRES a ON f.ID_FIRMA=a.ID_ADRES
+ORDER BY p.imie, p.nazwisko;
+
+--ADRESY ZAMIESZKANIA KLIENTÓW--
+SELECT k.imie, k.nazwisko, a.ulica, a.numer_domu, a.miasto
+FROM KLIENT k JOIN ADRES a ON k.ID_ADRES=a.ID_ADRES
+ORDER BY k.IMIE, k.NAZWISKO;
+
+--KWOTA FAKTUR WYSTAWIONYCH DLA POSZCZEGÓLNYCH KLIENTÓW--
+SELECT k.imie, k.nazwisko, F.cena_brutto
+FROM KLIENT k LEFT JOIN FAKTURA f
+ON k.ID_KLIENT=f.ID_KLIENT
+GROUP BY k.imie, k.nazwisko,f.cena_brutto
+ORDER BY cena_brutto DESC;
+
+--Znajduje klientów, którym conajmniej dwa razy została wystawiona faktura.
+--Wyświetla imię i nazwisko klienta oraz ilosc wystawionych dla niego faktur
+--posortowanych malejąco.
+SELECT k.imie, k.nazwisko, COUNT(f.id_KLIENT) AS ilosc_faktur
+FROM KLIENT k LEFT JOIN FAKTURA f ON k.id_KLIENT=f.id_KLIENT
+GROUP BY k.imie, k.nazwisko, k.id_KLIENT
+HAVING COUNT(f.id_klient)>=2
+ORDER BY COUNT (f.id_klient)DESC;
+
+--Wyświetla sumę oraz średnią sumę faktur wystawionych dla poszczególnych klientów
+--sortując je malejąco względem sumy.
+SELECT k.nazwisko, k.imie, AVG(f.cena_brutto) AS "srednia", 
+COALESCE(SUM(f.cena_brutto),0) AS "suma"
+FROM KLIENT k LEFT JOIN FAKTURA f
+ON k.id_KLIENT=f.id_KLIENT
+GROUP BY k.nazwisko, k.imie
+ORDER BY suma DESC;
+
+--Wyswietla ile dni temu została wykonana usługa wobec różnych klientów,
+--sortując wynik malejąco względem ilości dni.
+SELECT k.imie, k.nazwisko, DATEDIFF(d,f.data_uslugi,GETDATE()) AS ile_dni_temu
+FROM KLIENT k LEFT JOIN FAKTURA f
+ON k.id_KLIENT=f.id_KLIENT
+ORDER BY ile_dni_temu DESC;
+
+--Wyświetla imię, nazwisko oraz ID pracownika, który wystawił największą ilość faktur.
+--Dodatkowo wyświetla ile tych faktur było.
+SELECT p.id_PRACOWNIK, p.nazwisko, p.imie, COUNT(f.id_pracownik) as ilosc
+FROM PRACOWNIK p JOIN FAKTURA f 
+ON p.id_PRACOWNIK=f.id_PRACOWNIK
+GROUP BY p.id_PRACOWNIK, p.imie, p.nazwisko
+HAVING COUNT(f.id_pracownik)=
+(
+SELECT TOP 1 COUNT (f.id_pracownik) AS ilosc
+FROM FAKTURA f 
+GROUP BY f.id_PRACOWNIK
+ORDER BY ilosc DESC
+)
+
+--WYPISUJE MARKĘ, MODEL ORAZ ID SAMOCHODU KTÓRY NAJCZĘŚCIEJ BYŁ UŻYWANY DO ZAMÓWIEŃ.
+--DODATKOWO WYPISUJE ILOŚĆ ZREALIZOWANYCH ZAMÓWIEŃ.
+
+SELECT a.ID_AUTOO, a.marka, a.model, COUNT(z.id_autoo) AS ile
+FROM AUTOO a JOIN ZAMOWIENIE z ON a.id_AUTOO=z.id_AUTOO
+GROUP BY a.id_AUTOO, a.marka, a.model
+HAVING COUNT(z.id_AUTOO)=
+(
+SELECT TOP 1 COUNT(z.id_AUTOO) AS ile
+FROM ZAMOWIENIE z
+GROUP BY z.id_AUTOO
+ORDER BY ile DESC
+)
+ORDER BY a.marka ASC, a.model ASC;
+
+
+
+WIDOKI
+
+1.
+---WYŚWIETLA NAZWĘ STANOWISKA NA KTÓRYM OBSADZONY JEST WIĘCEJ NIŻ JEDEN PRACOWNIK
+--ORAZ ILOŚĆ PRACOWNIKÓW ZAJMUJĄCYCH DANE STANOWISKO
+--POSORTOWANYCH MALEJĄCO WZGLĘDEM ILOŚCI PRACOWNIKÓW.
+IF EXISTS (SELECT * FROM sys.views WHERE name='PRACOWNICY')
+DROP VIEW PRACOWNICY;
+GO
+
+CREATE VIEW PRACOWNICY
+AS 
+SELECT s.stanowisko, COUNT(p.id_PRACOWNIK) AS ilosc
+FROM PRACOWNIK p JOIN STANOWISKO s
+ON p.id_STANOWISKO=s.id_STANOWISKO
+GROUP BY s.stanowisko
+HAVING COUNT (p.id_STANOWISKO)>1
+GO
+
+SELECT ilosc, stanowisko
+FROM PRACOWNICY
+ORDER BY ilosc DESC;
+GO
+
+
+--WIDOK KTÓRY POKAZUJE ILE KURSÓW WYKONAŁY SAMOCHODY W FIRMIE. WYŚWIETLA MARKĘ I MODEL 
+--SAMOCHODU, ORAZ GRUPUJE JE MALEJĄCO WZGLĘDEM WYKONANYCH KURSÓW.
+--SELECT+CASE SPRAWDZA CZY ZAPOTRZEBOWANIE W FIRMIE NA DANE AUTO JEST DUŻE, CZY NIE.
+--DLACZEGO NIETRYWIALNE: WIDOK JEST PRZYDATNY, PONIEWAŻ POZWALA OSOBOM ZARZĄDZAJĄCYCH FIRMĄ
+--ZORIENTOWAĆ SIĘ KTÓRE AUTA EWENTUALNIE WARTO DOKUPIĆ, A NA KTÓRE JEST MAŁE ZAPOTRZEBOWANIE.
+IF EXISTS (SELECT * FROM sys.views WHERE name='SAMOCHODY')
+DROP VIEW SAMOCHODY;
+GO
+
+CREATE VIEW SAMOCHODY
+AS
+SELECT a.marka, a.model, COUNT(z.id_AUTOO) AS ilosc_kursow
+FROM AUTOO a JOIN ZAMOWIENIE z
+ON a.id_AUTOO=z.id_AUTOO
+GROUP BY a.marka, a.model
+GO
+
+SELECT CASE WHEN ilosc_kursow>=4 THEN 'DUŻE' ELSE 'MAŁE' END AS 'ZAPOTRZEBOWANIE', *
+FROM SAMOCHODY;
